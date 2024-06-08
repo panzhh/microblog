@@ -22,3 +22,15 @@ class Config:
     ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
     REDIS_URL = os.environ.get('REDIS_URL') or 'redis://'
     POSTS_PER_PAGE = 25
+
+
+    ADMINS = ['paneddy99@gmail.com']
+    POSTS_PER_PAGE = 25
+    BOOKS_PER_PAGE = 25
+
+    MAIL_PASSWORD='******************'
+    MAIL_USERNAME='paneddy99@gmail.com'
+    MAIL_SERVER='smtp.googlemail.com'
+    MAIL_PORT=587
+    MAIL_USE_TLS=1
+    READ_BOOK_INVENTORY_INIT_ENABLE=1

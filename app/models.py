@@ -354,3 +354,20 @@ class Task(db.Model):
     def get_progress(self):
         job = self.get_rq_job()
         return job.meta.get('progress', 0) if job is not None else 100
+
+
+
+class Book(db.Model):
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    book_title: so.Mapped[str] = so.mapped_column(sa.String(140))
+    author: so.Mapped[str] = so.mapped_column(sa.String(140))
+    author2: so.Mapped[str] = so.mapped_column(sa.String(140))
+    price: so.Mapped[str] = so.mapped_column(sa.String(140))
+    language: so.Mapped[str] = so.mapped_column(sa.String(140))
+    category: so.Mapped[str] = so.mapped_column(sa.String(140))
+    total_cnt: so.Mapped[int] = so.mapped_column(sa.Integer, default=1)
+    borrow_out_cnt: so.Mapped[int] = so.mapped_column(sa.Integer, default=0)
+
+    def __repr__(self):
+        return '<Book {}>'.format(self.book_title)
+
