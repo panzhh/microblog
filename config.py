@@ -28,7 +28,7 @@ class Config:
     POSTS_PER_PAGE = 25
     BOOKS_PER_PAGE = 25
 
-    MAIL_PASSWORD='******************'
+    MAIL_PASSWORD='*******************'
     MAIL_USERNAME='paneddy99@gmail.com'
     MAIL_SERVER='smtp.googlemail.com'
     MAIL_PORT=587
