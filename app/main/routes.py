@@ -352,3 +352,28 @@ def borrow_book(book_id):
     else:
         print("2222")
         return redirect(url_for('main.index'))
+
+
+@bp.route('/return_book/<book_id>')
+@login_required
+def return_book(book_id):
+    if current_user.is_authenticated:
+        borrow_book = db.session.scalar(sa.select(BorrowedBook).where(BorrowedBook.bid == book_id))
+        print(borrow_book)
+
+        book = db.session.scalar(sa.select(Book).where(Book.id == borrow_book.book_id))
+        if book.borrow_out_cnt > 0:
+            book.borrow_out_cnt = book.borrow_out_cnt - 1
+            print(book)
+            db.session.commit()
+
+
+        db.session.delete(borrow_book)
+        db.session.commit()
+        flash(_('Congratuation, book returned successfully!'))
+        return redirect(url_for('main.user', username=current_user.username))
+
+    else:
+        print("2222")
+        return redirect(url_for('main.index'))
+
