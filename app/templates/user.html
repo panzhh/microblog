@@ -10,7 +10,9 @@
                 {% if user.last_seen %}
                 <p>{{ _('Last seen on') }}: {{ moment(user.last_seen).format('LLL') }}</p>
                 {% endif %}
-                <p>{{ _('%(count)d followers', count=user.followers_count()) }}, {{ _('%(count)d following', count=user.following_count()) }}</p>
+                {% if user.username != 'admin' %}
+                <p>{{ _('%(count)d book(s) borrowed', count=user.borrowed_book_count()) }}</p>
+                {% endif %}
                 {% if user == current_user %}
                 <p><a href="{{ url_for('main.edit_profile') }}">{{ _('Edit your profile') }}</a></p>
                 {% if not current_user.get_task_in_progress('export_posts') %}
@@ -100,12 +102,12 @@
         <ul class="pagination">
             <li class="page-item{% if not prev_url %} disabled{% endif %}">
                 <a class="page-link" href="{{ prev_url }}">
-                    <span aria-hidden="true">&larr;</span> {{ _('Newer posts') }}
+                    <span aria-hidden="true">&larr;</span> {{ _('Newer books') }}
                 </a>
             </li>
             <li class="page-item{% if not next_url %} disabled{% endif %}">
                 <a class="page-link" href="{{ next_url }}">
-                    {{ _('Older posts') }} <span aria-hidden="true">&rarr;</span>
+                    {{ _('Older books') }} <span aria-hidden="true">&rarr;</span>
                 </a>
             </li>
         </ul>

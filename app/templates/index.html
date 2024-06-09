@@ -17,6 +17,9 @@
         {{ wtf.quick_form(load_book_form) }}
         {% endif %}
     {% endif %}
+    {% if current_user.username == "admin" %}
+        <a class="nav-link" href="{{ url_for('main.user', username=current_user.username) }}">{{ _('Manage your books') }}</a>
+    {% endif %}
     <nav aria-label="Post navigation">
         <ul class="pagination">
             <li class="page-item{% if not prev_url %} disabled{% endif %}">

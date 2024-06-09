@@ -185,12 +185,7 @@ def edit_profile():
         form.username.data = current_user.username
         form.about_me.data = current_user.about_me
 
-
-    
-
-
-    
-    return render_template('edit_profile.html', title=_('Edit Profile'), form=form, borrowed_book=books, username=current_user.username)
+    return render_template('edit_profile.html', title=_('Edit Profile'), form=form, username=current_user.username)
 
 
 @bp.route('/follow/<username>', methods=['POST'])
