@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% import "bootstrap_wtf.html" as wtf %}
+
+{% block content %}
+ <h1>{{ _('Hi, %(username)s!', username=current_user.username) }}</h1>
+ <br>
+ <h2 style="text-align:left;">Books you borrowed</h2>
+ <br>
+<table class="table table-bordered table-hover table-success table-striped">
+  <tr style="width:100%">
+    <th>Title</th>
+    <th>Author</th>
+    <th>Author2</th>
+    <th>Price</th>
+    <th>Language</th>
+    <th>Borrow time</th>
+    <th>Due time</th>
+  </tr>
+    {% for book in borrowed_books %}
+        <tr id={{book.id}} style="width:100%">
+            <td>{{book.book_title}}</td>
+            <td>{{book.author}}</td>
+            <td>{{book.author2}}</td>
+            <td>{{book.price}}</td>
+            <td>{{book.language}}</td>
+            <td>1</td>
+            <td>1</td>
+        </tr>
+    {% endfor %}
+</table>
+<br>
+
+ <nav aria-label="Post navigation">
+     <ul class="pagination">
+         <li class="page-item{% if not prev_url %} disabled{% endif %}">
+             <a class="page-link" href="{{ prev_url }}">
+                 <span aria-hidden="true">&larr;</span> Previous books
+             </a>
+         </li>
+         <li class="page-item{% if not next_url %} disabled{% endif %}">
+             <a class="page-link" href="{{ next_url }}">
+                 More books <span aria-hidden="true">&rarr;</span>
+             </a>
+         </li>
+     </ul>
+ </nav>
+
+{% endblock %}

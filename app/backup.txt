@@ -1,0 +1,43 @@
+MAIL_PASSWORD='wvkw nlto lzuo zvoe'
+
+
+
+class Book(db.Model):
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    book_title: so.Mapped[str] = so.mapped_column(sa.String(140))
+    author: so.Mapped[str] = so.mapped_column(sa.String(140))
+    author2: so.Mapped[str] = so.mapped_column(sa.String(140))
+    price: so.Mapped[str] = so.mapped_column(sa.String(140))
+    language: so.Mapped[str] = so.mapped_column(sa.String(140))
+    category: so.Mapped[str] = so.mapped_column(sa.String(140))
+    total_cnt: so.Mapped[int] = so.mapped_column(sa.Integer, default=1)
+    borrow_out_cnt: so.Mapped[int] = so.mapped_column(sa.Integer, default=0)
+
+    def __repr__(self):
+        return '<Book {}>'.format(self.book_title)
+
+
+class BorrowedBook(Book):
+    bid: so.Mapped[int] = so.mapped_column(primary_key=True)
+    book_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Book.id),
+                                               index=True)
+
+    borrow_date: so.Mapped[str] = so.mapped_column(sa.String(140))
+    due_date: so.Mapped[str] = so.mapped_column(sa.String(140))
+
+    user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id),
+                                               index=True)
+    borrower: so.Mapped[User] = so.relationship(back_populates='borrowed_books')
+
+
+    def __repr__(self):
+        return '<Book {}>'.format(self.book_title)
+
+
+
+
+
+
+
+    
+

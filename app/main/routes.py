@@ -7,10 +7,12 @@ import sqlalchemy as sa
 from langdetect import detect, LangDetectException
 from app import db
 from app.main.forms import EditProfileForm, EmptyForm, PostForm, SearchForm, \
-    MessageForm
-from app.models import User, Post, Message, Notification
+    MessageForm, LoadBookInventoryForm, BookForm
+from app.models import User, Post, Message, Notification, Book, BorrowedBook
 from app.translate import translate
 from app.main import bp
+import os, csv
+from dateutil.relativedelta import relativedelta
 
 
 @bp.before_app_request
@@ -26,46 +28,98 @@ def before_request():
 @bp.route('/index', methods=['GET', 'POST'])
 @login_required
 def index():
-    form = PostForm()
+    if current_user.username != "admin":
+        user = db.first_or_404(sa.select(User).where(User.username == current_user.username))
+        page = request.args.get('page', 1, type=int)
+        query = user.borrowed_books.select()
+        books = db.paginate(query, page=page,
+                            per_page=current_app.config['POSTS_PER_PAGE'],
+                            error_out=False)
+        next_url = url_for('main.index', page=books.next_num) if books.has_next else None
+        prev_url = url_for('main.index', page=books.prev_num) if books.has_prev else None
+        return render_template('borrowed_book.html', title=_(current_user.username), books=books)
+
+    form = BookForm()
     if form.validate_on_submit():
-        try:
-            language = detect(form.post.data)
-        except LangDetectException:
-            language = ''
-        post = Post(body=form.post.data, author=current_user,
-                    language=language)
-        db.session.add(post)
-        db.session.commit()
-        flash(_('Your post is now live!'))
+        book_title = form.book_title.data
+        author = form.author.data
+        author2 = form.author2.data
+        price = form.price.data
+        language = form.language.data
+        category = form.category.data
+        copies = form.copies.data
+        book = Book(book_title=book_title, author=author, author2=author2, price=price, language=language, category=category, total_cnt=copies, borrow_out_cnt=0)
+        print(book)
+        flash(_('Book has been added successfully!'))
         return redirect(url_for('main.index'))
-    page = request.args.get('page', 1, type=int)
-    posts = db.paginate(current_user.following_posts(), page=page,
-                        per_page=current_app.config['POSTS_PER_PAGE'],
-                        error_out=False)
-    next_url = url_for('main.index', page=posts.next_num) \
-        if posts.has_next else None
-    prev_url = url_for('main.index', page=posts.prev_num) \
-        if posts.has_prev else None
-    return render_template('index.html', title=_('Home'), form=form,
-                           posts=posts.items, next_url=next_url,
-                           prev_url=prev_url)
+
+    if current_app.config['READ_BOOK_INVENTORY_INIT_ENABLE']:
+        load_book_form = LoadBookInventoryForm()
+        if load_book_form.validate_on_submit():
+            basedir = os.path.abspath(os.path.dirname(__file__))
+
+            # Define the path to the CSV file
+            file_path = basedir + '\\..\\book_inventory.csv' 
+            print(file_path)
+
+            #db.drop_all()
+            #db.create_all()
+
+            # Open the file in read mode
+            with open(file_path, mode='r', newline='') as file:
+
+                # Create a CSV reader object
+                csv_reader = csv.reader(file)
+
+                # Optionally, skip the header row if your CSV has headers
+                next(csv_reader, None)  # Uncomment if the first row is a header
+
+                # Iterate over the rows in the CSV file
+                i = 0
+                for row in csv_reader:
+                    book_title = row[0] 
+                    author = row[4]  
+                    author2 = row[5]  
+                    price = row[27]  
+                    language = row[28]  
+                    category = row[53]  
+                    print (book_title, author, author2, price, language, category)
+                    b = Book(book_title=book_title, author=author, author2=author2, price=price, language=language, category=category, total_cnt=1, borrow_out_cnt=0)
+
+                    db.session.add(b)
+                    db.session.commit()
+
+                    if i == 4:
+                        break
+
+                    i = i+1
+
+            flash(_('Book inventory has been loaded successfully!'))
+            current_app.config['READ_BOOK_INVENTORY_INIT_ENABLE'] = 0
+            return redirect(url_for('main.index'))
+
+        return render_template('index.html', title=_('Home'), form=form, load_book_form=load_book_form)
+
+
+    return render_template('index.html', title=_('Home'), form=form)
+
+
 
 
 @bp.route('/explore')
 @login_required
 def explore():
+
     page = request.args.get('page', 1, type=int)
-    query = sa.select(Post).order_by(Post.timestamp.desc())
-    posts = db.paginate(query, page=page,
+    query = sa.select(Book).order_by(Book.book_title)
+    books = db.paginate(query, page=page,
                         per_page=current_app.config['POSTS_PER_PAGE'],
                         error_out=False)
-    next_url = url_for('main.explore', page=posts.next_num) \
-        if posts.has_next else None
-    prev_url = url_for('main.explore', page=posts.prev_num) \
-        if posts.has_prev else None
-    return render_template('index.html', title=_('Explore'),
-                           posts=posts.items, next_url=next_url,
-                           prev_url=prev_url)
+    next_url = url_for('main.explore', page=books.next_num) if books.has_next else None
+    prev_url = url_for('main.explore', page=books.prev_num) if books.has_prev else None
+
+    return render_template('book.html', title='Book', books=books.items, next_url=next_url, prev_url=prev_url) 
+
 
 
 @bp.route('/user/<username>')
@@ -82,8 +136,26 @@ def user(username):
     prev_url = url_for('main.user', username=user.username,
                        page=posts.prev_num) if posts.has_prev else None
     form = EmptyForm()
-    return render_template('user.html', user=user, posts=posts.items,
+
+    if username == "admin":
+        return render_template('user.html', user=user, borrowed_books=posts,
                            next_url=next_url, prev_url=prev_url, form=form)
+
+
+    page2 = request.args.get('page', 1, type=int)
+    query2 = user.borrowed_books.select()
+    books = db.paginate(query2, page=page2,
+                        per_page=current_app.config['POSTS_PER_PAGE'],
+                        error_out=False)
+    next_url2 = url_for('main.index', page=books.next_num) if books.has_next else None
+    prev_url2 = url_for('main.index', page=books.prev_num) if books.has_prev else None
+
+
+
+
+
+    return render_template('user.html', user=user, borrowed_books=books,
+                           next_url=next_url2, prev_url=prev_url2, form=form)
 
 
 @bp.route('/user/<username>/popup')
@@ -107,8 +179,13 @@ def edit_profile():
     elif request.method == 'GET':
         form.username.data = current_user.username
         form.about_me.data = current_user.about_me
-    return render_template('edit_profile.html', title=_('Edit Profile'),
-                           form=form)
+
+
+    
+
+
+    
+    return render_template('edit_profile.html', title=_('Edit Profile'), form=form, borrowed_book=books, username=current_user.username)
 
 
 @bp.route('/follow/<username>', methods=['POST'])
@@ -239,3 +316,39 @@ def notifications():
         'data': n.get_data(),
         'timestamp': n.timestamp
     } for n in notifications]
+
+
+@bp.route('/borrow_book/<book_id>')
+@login_required
+def borrow_book(book_id):
+    if current_user.is_authenticated:
+        print(book_id)
+        book = db.session.scalar(sa.select(Book).where(Book.id == book_id))
+        book.borrow_out_cnt = book.borrow_out_cnt + 1
+        db.session.commit()
+
+        borrow_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        due_date = (datetime.now()+ relativedelta(months=1)).strftime("%Y-%m-%d %H:%M:%S")
+        print(borrow_date)
+        print(due_date)
+        borrow_book = BorrowedBook(borrow_date=borrow_date, 
+                                   due_date=due_date,
+                                   borrower=current_user,
+                                   book_id=book.id,
+                                   book_title=book.book_title,
+                                   author=book.author,
+                                   author2=book.author2,
+                                   price=book.price,
+                                   language=book.language,
+                                   category=book.category
+                                   )
+
+        db.session.add(borrow_book)
+        db.session.commit()
+        flash(_('Congratuation, you borrowed the book successfully!'))
+
+        return redirect(url_for('main.user', username=current_user.username))
+
+    else:
+        print("2222")
+        return redirect(url_for('main.index'))

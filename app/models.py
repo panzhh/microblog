@@ -109,6 +109,8 @@ class User(PaginatedAPIMixin, UserMixin, db.Model):
     token: so.Mapped[Optional[str]] = so.mapped_column(
         sa.String(32), index=True, unique=True)
     token_expiration: so.Mapped[Optional[datetime]]
+    borrowed_books: so.WriteOnlyMapped['BorrowedBook'] = so.relationship(
+        back_populates='borrower')
 
     posts: so.WriteOnlyMapped['Post'] = so.relationship(
         back_populates='author')
@@ -362,7 +364,7 @@ class Book(db.Model):
     book_title: so.Mapped[str] = so.mapped_column(sa.String(140))
     author: so.Mapped[str] = so.mapped_column(sa.String(140))
     author2: so.Mapped[str] = so.mapped_column(sa.String(140))
-    price: so.Mapped[str] = so.mapped_column(sa.String(140))
+    price: so.Mapped[str] = so.mapped_column(sa.String(20))
     language: so.Mapped[str] = so.mapped_column(sa.String(140))
     category: so.Mapped[str] = so.mapped_column(sa.String(140))
     total_cnt: so.Mapped[int] = so.mapped_column(sa.Integer, default=1)
@@ -371,3 +373,26 @@ class Book(db.Model):
     def __repr__(self):
         return '<Book {}>'.format(self.book_title)
 
+
+class BorrowedBook(db.Model):
+    bid: so.Mapped[int] = so.mapped_column(primary_key=True)
+    book_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Book.id),
+                                               index=True)
+
+    user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id),
+                                               index=True)
+    borrower: so.Mapped[User] = so.relationship(back_populates='borrowed_books')
+
+    book_title: so.Mapped[str] = so.mapped_column(sa.String(140))
+    author: so.Mapped[str] = so.mapped_column(sa.String(140))
+    author2: so.Mapped[str] = so.mapped_column(sa.String(140))
+    price: so.Mapped[str] = so.mapped_column(sa.String(20))
+    language: so.Mapped[str] = so.mapped_column(sa.String(140))
+    category: so.Mapped[str] = so.mapped_column(sa.String(140))
+    borrow_date: so.Mapped[str] = so.mapped_column(sa.String(140))
+    due_date: so.Mapped[str] = so.mapped_column(sa.String(140))
+
+
+
+    def __repr__(self):
+        return '<Book {}>'.format(self.book_title)

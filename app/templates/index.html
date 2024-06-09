@@ -9,16 +9,24 @@
     {% for post in posts %}
         {% include '_post.html' %}
     {% endfor %}
+    {% for book in books %}
+        {% include '_book.html' %}
+    {% endfor %}
+    {% if current_user.username == "admin" %}
+        {% if load_book_form %}
+        {{ wtf.quick_form(load_book_form) }}
+        {% endif %}
+    {% endif %}
     <nav aria-label="Post navigation">
         <ul class="pagination">
             <li class="page-item{% if not prev_url %} disabled{% endif %}">
                 <a class="page-link" href="{{ prev_url }}">
-                    <span aria-hidden="true">&larr;</span> {{ _('Newer posts') }}
+                    <span aria-hidden="true">&larr;</span> {{ _('Newer books') }}
                 </a>
             </li>
             <li class="page-item{% if not next_url %} disabled{% endif %}">
                 <a class="page-link" href="{{ next_url }}">
-                    {{ _('Older posts') }} <span aria-hidden="true">&rarr;</span>
+                    {{ _('Older books') }} <span aria-hidden="true">&rarr;</span>
                 </a>
             </li>
         </ul>

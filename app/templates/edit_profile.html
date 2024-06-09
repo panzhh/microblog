@@ -4,4 +4,36 @@
 {% block content %}
     <h1>{{ _('Edit Profile') }}</h1>
     {{ wtf.quick_form(form) }}
+
+
+    {% if username == 'admin' %}
+        <h2 style="text-align:left;">Bookss you borrowed</h2>
+        <br>
+        <table class="table table-bordered table-hover table-success table-striped">
+         <tr style="width:100%">
+           <th>Title</th>
+           <th>Author</th>
+           <th>Author2</th>
+           <th>Price</th>
+           <th>Language</th>
+           <th>borrow time</th>
+           <th>due time</th>
+         </tr>
+           {% for book in borrowed_books %}
+               <tr id={{book.id}} style="width:100%">
+                   <td>{{book.book_title}}</td>
+                   <td>{{book.author}}</td>
+                   <td>{{book.author2}}</td>
+                   <td>{{book.price}}</td>
+                   <td>{{book.language}}</td>
+                   <td>1</td>
+                   <td>1</td>
+               </tr>
+           {% endfor %}
+        </table>
+    {% endif %}
+
+
+
+
 {% endblock %}
