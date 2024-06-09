@@ -107,7 +107,7 @@ def index():
 
 
 @bp.route('/explore')
-@login_required
+#@login_required
 def explore():
 
     page = request.args.get('page', 1, type=int)
@@ -120,6 +120,11 @@ def explore():
 
     return render_template('book.html', title='Book', books=books.items, next_url=next_url, prev_url=prev_url) 
 
+
+@bp.route('/contact')
+#@login_required
+def contact():
+    return render_template('contact.html') 
 
 
 @bp.route('/user/<username>')
